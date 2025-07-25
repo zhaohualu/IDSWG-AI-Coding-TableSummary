@@ -123,6 +123,19 @@ def bootstrap_memory():
 
 bootstrap_memory()
 
+def rebuild_faiss_and_docidmap():
+    global doc_id_map, faiss_index
+    doc_id_map = []
+    faiss_index.reset()
+    all_docs = list(collection.find())
+    if all_docs:
+        texts = [" ".join(doc.get("lines", [])) for doc in all_docs]
+        embeddings = embedder.encode(texts)
+        faiss_index.add(np.array(embeddings))
+        doc_id_map = [doc["_id"] for doc in all_docs]
+
+# Call this after MongoDB setup and before using memory functions
+rebuild_faiss_and_docidmap()
 
 # -----------------------------
 
@@ -149,9 +162,10 @@ def retrieve_similar_memories(new_table_lines, top_k=3):
     D, I = faiss_index.search(np.array(query_embedding), top_k)
     results = []
     for idx in I[0]:
-        mongo_id = doc_id_map[idx]
-        doc = collection.find_one({"_id": mongo_id})
-        results.append(doc)
+        if idx < len(doc_id_map):
+            mongo_id = doc_id_map[idx]
+            doc = collection.find_one({"_id": mongo_id})
+            results.append(doc)
     return results
 
 # -----------------------------
