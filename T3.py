@@ -103,6 +103,29 @@ mongo_client = MongoClient("mongodb://localhost:27017")
 db = mongo_client["clinical_memory"]
 collection = db["summaries"]
 
+# Bootstrap a dummy memory if database is empty
+def bootstrap_memory():
+    if collection.count_documents({}) == 0:
+        lines = ["Age | 60", "Female | 70%"]
+        summary = "Most patients were women around 60 years old."
+        text = " ".join(lines)
+        embedding = embedder.encode([text])
+        doc = {
+            "lines": lines,
+            "summary": summary,
+            "user": "bootstrap",
+            "tags": ["test"],
+            "timestamp": datetime.utcnow()
+        }
+        result = collection.insert_one(doc)
+        doc_id_map.append(result.inserted_id)
+        faiss_index.add(np.array(embedding))
+
+bootstrap_memory()
+
+
+# -----------------------------
+
 # -----------------------------
 # 2. MEMORY FUNCTIONS (unchanged)
 # -----------------------------
