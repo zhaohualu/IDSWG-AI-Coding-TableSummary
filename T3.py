@@ -252,7 +252,7 @@ elif page == "Upload & Summarize":
                             memory_summaries = retrieve_similar_memories(demographic_lines, top_k=2)
                             context = "\n\n".join(["Past similar summary: " + m["summary"] for m in memory_summaries])
                             prompt = (
-                                "You are a medical researcher. Use the following past clinical trial summaries to help interpret a new demographic table."
+                                "You are a medical researcher. Use the following past clinical trial summaries to help interpret a new demographic table. Write summary in bullet points and keep it concise but detailed."
                                 f"\n\n{context}\n\nNow summarize this table:\n"
                                 + "\n".join(demographic_lines) + "\n\nSummary:"
                             )
